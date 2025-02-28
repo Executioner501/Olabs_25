@@ -2,29 +2,23 @@
 
 import { useState } from 'react';
 import TopicNavbar from "@/components/TopicNavbar";
+import { BarChart, XAxis, YAxis, Bar, Tooltip, ResponsiveContainer } from 'recharts';
 
 const SelfEvaluation = () => {
   const questions = [
-    // Queue Basics & Operations
     { id: 'q1', topic: 'Queue Basics & Operations', text: 'Which of the following operations is not typically supported by a queue data structure?', options: ['Enqueue', 'Dequeue', 'Random Access', 'Peek'], answer: 'Random Access' },
     { id: 'q2', topic: 'Queue Basics & Operations', text: 'What is a queue data structure?', options: ['LIFO principle', 'FIFO principle', 'Allows random access', 'Insertion and deletion in any order'], answer: 'FIFO principle' },
     { id: 'q3', topic: 'Queue Basics & Operations', text: 'Which operation adds an element to the queue?', options: ['Pop', 'Push', 'Dequeue', 'Enqueue'], answer: 'Enqueue' },
     { id: 'q4', topic: 'Queue Basics & Operations', text: 'Which operation removes an element from the queue?', options: ['Pop', 'Push', 'Dequeue', 'Enqueue'], answer: 'Dequeue' },
     { id: 'q11', topic: 'Queue Basics & Operations', text: 'Which operation is performed in O(1) time complexity in a queue?', options: ['Enqueue', 'Dequeue', 'Both', 'None'], answer: 'Both' },
-  
-    // Queue Implementation & Variants
     { id: 'q5', topic: 'Queue Implementation & Variants', text: 'Which of the following is not a common implementation of a queue?', options: ['Array', 'Linked List', 'Stack', 'None of these'], answer: 'Stack' },
     { id: 'q6', topic: 'Queue Implementation & Variants', text: 'What list method is typically used to remove elements from the front of a queue implemented using a list?', options: ['pop()', 'remove()', 'shift()', 'delete()'], answer: 'shift()' },
     { id: 'q12', topic: 'Queue Implementation & Variants', text: 'A circular queue prevents which problem of a simple queue?', options: ['Underflow', 'Overflow', 'Memory wastage', 'All of the above'], answer: 'Memory wastage' },
     { id: 'q13', topic: 'Queue Implementation & Variants', text: 'Which of the following queues allows insertion and deletion at both ends?', options: ['Priority Queue', 'Simple Queue', 'Deque', 'Circular Queue'], answer: 'Deque' },
     { id: 'q15', topic: 'Queue Implementation & Variants', text: 'How do you implement a queue using two stacks?', options: ['Push elements normally', 'Use one for enqueue, another for dequeue', 'Both push and pop on the same stack', 'It is impossible'], answer: 'Use one for enqueue, another for dequeue' },
-  
-    // Queue Pointers & Structure
     { id: 'q7', topic: 'Queue Pointers & Structure', text: 'What is the significance of the front pointer in a queue implementation?', options: ['Last element', 'Middle element', 'Random element', 'First element'], answer: 'First element' },
     { id: 'q8', topic: 'Queue Pointers & Structure', text: 'The location in the queue from which elements are removed is _______.', options: ['Front', 'Back', 'Rear', 'Top'], answer: 'Front' },
     { id: 'q9', topic: 'Queue Pointers & Structure', text: 'The location in the queue where elements are inserted is _______.', options: ['Front', 'Back', 'Rear', 'Top'], answer: 'Rear' },
-  
-    // Queue Applications & Errors
     { id: 'q10', topic: 'Queue Applications & Errors', text: 'Which data structure is required for Breadth First Traversal on a graph?', options: ['Stack', 'Queue', 'Tree', 'Heap'], answer: 'Queue' },
     { id: 'q14', topic: 'Queue Applications & Errors', text: 'What happens when you try to dequeue from an empty queue?', options: ['Returns null', 'Throws an error', 'Removes front element', 'Nothing happens'], answer: 'Throws an error' }
   ];
@@ -33,6 +27,7 @@ const SelfEvaluation = () => {
   const [score, setScore] = useState(null);
   const [explanations, setExplanations] = useState({});
   const [loading, setLoading] = useState({});
+  const [topicPerformance, setTopicPerformance] = useState({});
 
   const handleOptionChange = (questionId, option) => {
     setSelectedAnswers(prev => ({ ...prev, [questionId]: option }));
@@ -43,6 +38,7 @@ const SelfEvaluation = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     let newScore = 0;
+    const topicWiseCorrect = {};
 
     for (const question of questions) {
       const selected = selectedAnswers[question.id];
@@ -57,6 +53,9 @@ const SelfEvaluation = () => {
       if (selected === question.answer) {
         newScore++;
         setExplanations(prev => ({ ...prev, [question.id]: 'Correct answer: ' + question.answer }));
+
+        // Track correct answers per topic
+        topicWiseCorrect[question.topic] = (topicWiseCorrect[question.topic] || 0) + 1;
       } else {
         setLoading(prev => ({ ...prev, [question.id]: true }));  // Start loading state
 
@@ -83,6 +82,20 @@ const SelfEvaluation = () => {
     }
 
     setScore(newScore);
+
+    // ✅ Calculate Topic-Wise Performance
+    const totalQuestionsPerTopic = {};
+    questions.forEach((q) => {
+      totalQuestionsPerTopic[q.topic] = (totalQuestionsPerTopic[q.topic] || 0) + 1;
+    });
+
+    const finalPerformance = Object.keys(totalQuestionsPerTopic).map((topic) => ({
+      topic,
+      percentage: ((topicWiseCorrect[topic] || 0) / totalQuestionsPerTopic[topic]) * 100
+    }));
+
+    setTopicPerformance(finalPerformance);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -114,27 +127,19 @@ const SelfEvaluation = () => {
             {loading[q.id] && <p className="mt-2 text-sm text-blue-600">Fetching explanation...</p>}
 
             {explanations[q.id] && (
-  <div className="mt-2">
-    <strong>Explanation:</strong>
-    <div className={`text-sm ${selectedAnswers[q.id] === q.answer ? 'text-green-600' : 'text-red-600'}`}>
-      {explanations[q.id].split(/\* /).map((point, index) => (
-        point.trim() && (
-          <p key={index} className="ml-4">
-            • {point.trim()}
-          </p>
-        )
-      ))}
-    </div>
-  </div>
-)}
-
-
-
-
-
-
-
-
+              <div className="mt-2">
+                <strong>Explanation:</strong>
+                <div className={`text-sm ${selectedAnswers[q.id] === q.answer ? 'text-green-600' : 'text-red-600'}`}>
+                  {explanations[q.id].split(/\* /).map((point, index) => (
+                    point.trim() && (
+                      <p key={index} className="ml-4">
+                        • {point.trim()}
+                      </p>
+                    )
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
 
@@ -147,6 +152,21 @@ const SelfEvaluation = () => {
 
       {score !== null && (
         <p className="mt-4 text-lg font-semibold">Your Score: {score} / {questions.length}</p>
+      )}
+
+      {/* ✅ Performance Chart */}
+      {score !== null && topicPerformance.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Topic-wise Performance</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={topicPerformance}>
+              <XAxis dataKey="topic" />
+              <YAxis domain={[0, 100]} />
+              <Tooltip />
+              <Bar dataKey="percentage" fill="#3182ce" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );

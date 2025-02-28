@@ -34,7 +34,7 @@ def explain():
     prompt = f"""The question was: "{question}"
     The user selected: "{wrong_answer}" which is incorrect.
     The correct answer is: "{correct_answer}".
-    Explain why the correct answer is right in simple terms.give the answer point wise and keep it concise so that a normal student can understand it well"""
+    Explain why the correct answer is right in simple terms.give the answer point wise and keep it concise so that a normal student can understand it well restrict the answer to max 3 points"""
 
     payload = {"model": "llama3.2:3b", "prompt": prompt, "stream": False}
     response = requests.post(OLLAMA_URL, json=payload)
