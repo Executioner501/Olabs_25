@@ -13,8 +13,8 @@ const Navbar = () => {
   const [subject, setSubject] = useState("");
   const [password, setPassword] = useState("");
 
-  const toggleModal = () => setIsModalOpen((prev) => !prev);
-  const toggleForm = () => setIsLogin((prev) => !prev);
+  const toggleModal = () => setIsModalOpen(!isModalOpen);
+  const toggleForm = () => setIsLogin(!isLogin);
   
   const handleLogout = () => {
     setIsAuthenticated(false);
@@ -90,7 +90,7 @@ const Navbar = () => {
           <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">Contact Us</li>
           {isAuthenticated && (
             <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/dashboard">DashBoard</Link>
             </li>
           )}
         </ul>
@@ -112,35 +112,33 @@ const Navbar = () => {
               ✖
             </button>
             {isLogin ? (
-              <div>
-                <h2 className="text-2xl font-bold mb-5 text-black">Log in</h2>
-                <input type="text" className="w-full px-4 py-2 border rounded-md mb-2 text-black"
-                  placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-                <input type="password" className="w-full px-4 py-2 border rounded-md mb-2 text-black"
-                  placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                <button className="mt-4 w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600"
-                  onClick={handleLogin}>
-                  Log in
-                </button>
-                <p className="text-gray-600 mt-4 text-center">Don't have an account?</p>
-                <button className="text-blue-600 underline block w-full text-center" onClick={toggleForm}>
-                  Sign up
-                </button>
-              </div>
+              <>
+                <h2 className="text-2xl font-bold mb-5  text-black">Log in</h2>
+                <input type="text" className="w-full px-4 py-2 border rounded-md mb-2 text-black" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                <input type="password" className="w-full px-4 py-2 border rounded-md mb-2 text-black" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <button className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600" onClick={handleLogin}>Log in</button>
+                <p className="text-center mt-4 text-black">Don't have an account? <span className="text-blue-600 cursor-pointer" onClick={toggleForm}>Sign up</span></p>
+              </>
             ) : (
-              <div>
-                <h2 className="text-2xl font-bold mb-4 text-black">Sign up</h2>
-                <input type="text" className="w-full px-4 py-2 border rounded-md mb-2 text-black"
-                  placeholder="Full Name" value={fullname} onChange={(e) => setFullname(e.target.value)} />
-                <input type="text" className="w-full px-4 py-2 border rounded-md mb-2 text-black"
-                  placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-                <input type="password" className="w-full px-4 py-2 border rounded-md mb-2 text-black"
-                  placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                <button className="mt-4 w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600"
-                  onClick={handleSignup}>
-                  Sign up
-                </button>
-              </div>
+              <>
+                <h2 className="text-2xl font-bold mb-5 text-black">Sign up</h2>
+                <input type="text" className="w-full px-4 py-2 border rounded-md mb-2 text-black" placeholder="Full Name" value={fullname} onChange={(e) => setFullname(e.target.value)} />
+                <input type="text" className="w-full px-4 py-2 border rounded-md mb-2 text-black" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                <input type="password" className="w-full px-4 py-2 border rounded-md mb-2 text-black" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <select className="w-full px-4 py-2 border rounded-md mb-2 text-black" value={userType} onChange={(e) => setUserType(e.target.value)}>
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                </select>
+                {userType === "teacher" && (
+                  <select className="w-full px-4 py-2 border rounded-md mb-2 text-black" value={subject} onChange={(e) => setSubject(e.target.value)}>
+                    <option value="">Select Subject</option>
+                    <option value="physics">Computer</option>
+                    <option value="chemistry">Chemistry</option>
+                  </select>
+                )}
+                <button className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600" onClick={handleSignup}>Sign up</button>
+                <p className="text-center mt-4 text-black">Already have an account? <span className="text-blue-600 cursor-pointer" onClick={toggleForm}>Log in</span></p>
+              </>
             )}
           </div>
         </div>
