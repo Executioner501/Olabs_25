@@ -68,8 +68,11 @@ const Navbar = () => {
           <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">In the News</li>
           <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">Workshops &#9662;</li>
           <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">Training &#9662;</li>
-          <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">Download</li>
           <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">Contact Us</li>
+          {/* Dashboard Link */}
+          <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">
+            <Link href="/dashboard">DashBoard</Link>
+          </li>
         </ul>
 
         {/* Login Button */}

@@ -2,14 +2,14 @@ import React from "react";
 import Link from "next/link";
 
 const subjects = [
-  { name: "PHYSICS", color: "bg-orange-500", img: "/assets/physics.png", link: "/physics" },
-  { name: "CHEMISTRY", color: "bg-blue-600", img: "/assets/chemistry.png", link: "/chemistry" },
-  { name: "BIOLOGY", color: "bg-green-600", img: "/assets/biology.png", link: "/biology" },
-  { name: "MATHS", color: "bg-red-600", img: "/assets/maths.png", link: "/maths" },
-  { name: "LANGUAGE", color: "bg-orange-500", img: "/assets/language.png", link: "/language" },
-  { name: "SCIENCE", color: "bg-blue-600", img: "/assets/science.png", link: "/science" },
-  { name: "SOCIAL SCIENCE", color: "bg-green-600", img: "/assets/socialscience.png", link: "/social-science" },
-  { name: "COMPUTER", color: "bg-red-600", img: "/assets/computer.png", link: "/computer" }
+  { name: "COMPUTER", color: "bg-orange-500", img: "/assets/computer.png", link: "/computer" },
+  { name: "PHYSICS", color: "bg-blue-600", img: "/assets/physics.png", link: "/physics" },
+  { name: "CHEMISTRY", color: "bg-green-600", img: "/assets/chemistry.png", link: "/chemistry" },
+  { name: "BIOLOGY", color: "bg-red-600", img: "/assets/biology.png", link: "/biology" },
+  { name: "MATHS", color: "bg-orange-500", img: "/assets/maths.png", link: "/maths" },
+  { name: "LANGUAGE", color: "bg-blue-600", img: "/assets/language.png", link: "/language" },
+  { name: "SCIENCE", color: "bg-green-600", img: "/assets/science.png", link: "/science" },
+  { name: "SOCIAL SCIENCE", color: "bg-red-600", img: "/assets/socialscience.png", link: "/social-science" }
 ];
 
 export default function Home() {
