@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import TopicNavbar from "@/components/TopicNavbar";
-import { BarChart, XAxis, YAxis, Bar, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, XAxis, YAxis, Bar, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const SelfEvaluation = () => {
   const questions = [
@@ -28,12 +28,12 @@ const SelfEvaluation = () => {
   const [explanations, setExplanations] = useState({});
   const [loading, setLoading] = useState({});
   const [topicPerformance, setTopicPerformance] = useState({});
+  const [errors, setErrors] = useState({}); // Track unanswered questions
+  const [weakTopics, setWeakTopics] = useState([]); // Track weak topics
 
   const handleOptionChange = (questionId, option) => {
     setSelectedAnswers(prev => ({ ...prev, [questionId]: option }));
   };
-
-  const [errors, setErrors] = useState({}); // Track unanswered questions
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,6 +82,7 @@ const SelfEvaluation = () => {
     }
 
     setScore(newScore);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     // ✅ Calculate Topic-Wise Performance
     const totalQuestionsPerTopic = {};
@@ -95,7 +96,13 @@ const SelfEvaluation = () => {
     }));
 
     setTopicPerformance(finalPerformance);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // ✅ Identify Weak Topics
+    const weakTopicsList = finalPerformance
+      .filter(topic => topic.percentage < 50)
+      .map(topic => topic.topic);
+
+    setWeakTopics(weakTopicsList);
   };
 
   return (
@@ -151,7 +158,11 @@ const SelfEvaluation = () => {
       </form>
 
       {score !== null && (
-        <p className="mt-4 text-lg font-semibold">Your Score: {score} / {questions.length}</p>
+        <p className="mt-4 text-3xl font-semibold text-blue-500 shadow-md">
+        Your Score: {score} / {questions.length}
+      </p>
+      
+
       )}
 
       {/* ✅ Performance Chart */}
@@ -163,9 +174,28 @@ const SelfEvaluation = () => {
               <XAxis dataKey="topic" />
               <YAxis domain={[0, 100]} />
               <Tooltip />
-              <Bar dataKey="percentage" fill="#3182ce" />
+              <Bar dataKey="percentage">
+                {topicPerformance.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.percentage < 50 ? 'red' : 'green'}  // Change color based on percentage
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Weak Topics Identified */}
+      {weakTopics.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Weak Topics Identified</h2>
+          <ul className="list-disc pl-6">
+            {weakTopics.map((topic, index) => (
+              <li key={index} className="text-red-600">{topic}</li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
