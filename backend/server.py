@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB Atlas connection (Use environment variables for security)
-MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://NIKHIL:chandu@olabs.qogd0.mongodb.net/OLABS?retryWrites=true&w=majority")
+MONGO_URI = os.getenv("MONGO_URI", "")
 app.config["MONGO_URI"] = MONGO_URI
 
 mongo = PyMongo(app)

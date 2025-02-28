@@ -19,9 +19,6 @@ export default function Home() {
       {/* Main Banner */}
       <section className="relative w-full h-80 bg-green-400 flex items-center justify-center rounded-xl overflow-hidden shadow-xl mb-6">
         <img src="/assets/banner.jpg" className="absolute w-full h-full object-cover rounded-xl" alt="Lab Learning" />
-        <div className="relative text-white text-3xl font-bold bg-black bg-opacity-50 p-4 rounded-lg">
-          Experience REAL LAB LEARNING
-        </div>
       </section>
 
       {/* Subject Cards */}
