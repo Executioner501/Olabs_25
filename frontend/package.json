@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "next": "15.1.7",
+    "node": "^23.9.0",
+    "olabs-clone": "file:",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0"
