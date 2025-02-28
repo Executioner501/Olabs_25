@@ -32,48 +32,62 @@ const SelfEvaluation = () => {
     setSelectedAnswers(prev => ({ ...prev, [questionId]: option }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    let newScore = 0;
+  const [errors, setErrors] = useState({}); // Track unanswered questions
 
-    for (const question of questions) {
-      const selected = selectedAnswers[question.id];
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  let newScore = 0;
+  let newExplanations = {};
+  let newErrors = {}; // Store "Not answered" messages
 
-      if (selected === question.answer) {
-        newScore++;
-      } else {
-        setLoading(prev => ({ ...prev, [question.id]: true }));  // Start loading state
+  for (const question of questions) {
+    const selected = selectedAnswers[question.id];
 
-        try {
-          const response = await fetch('http://127.0.0.1:5000/explain', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              question: question.text,
-              wrongAnswer: selected,
-              correctAnswer: question.answer
-            })
-          });
+    if (!selected) {
+      // ❌ User didn't answer -> Show "Not answered"
+      newErrors[question.id] = 'Not answered';
+      newExplanations[question.id] = 'Not answered';
+    } else if (selected === question.answer) {
+      newScore++;
+    } else {
+      setLoading(prev => ({ ...prev, [question.id]: true }));
 
-          const data = await response.json();
-          setExplanations(prev => ({ ...prev, [question.id]: data.explanation || 'No explanation available.' }));
-        } catch (error) {
-          console.error('Error fetching explanation:', error);
-          setExplanations(prev => ({ ...prev, [question.id]: 'Error retrieving explanation.' }));
-        }
+      try {
+        const response = await fetch('http://127.0.0.1:5000/explain', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: question.text,
+            wrongAnswer: selected,
+            correctAnswer: question.answer
+          })
+        });
 
-        setLoading(prev => ({ ...prev, [question.id]: false })); // End loading state
+        const data = await response.json();
+        const formattedExplanation = `* ` + data.explanation.replace(/\n/g, '\n* ');
+
+        newExplanations[question.id] = formattedExplanation;
+      } catch (error) {
+        console.error('Error fetching explanation:', error);
+        newExplanations[question.id] = 'Error retrieving explanation.';
       }
-    }
 
-    setScore(newScore);
-  };
+      setLoading(prev => ({ ...prev, [question.id]: false }));
+    }
+  }
+
+  setScore(newScore);
+  setExplanations(newExplanations);
+  setErrors(newErrors); // Update "Not answered" messages
+};
+
+  
 
   return (
     <div className="p-6 text-gray-900 bg-white min-h-screen">
       <TopicNavbar />
       <h2 className="text-2xl font-bold mb-4">Self-Evaluation</h2>
-      <p className="mb-4">Step-by-step procedure to implement a queue using a list in Python.</p>
       <h2 className="text-xl font-semibold mb-3">Queue Data Structure MCQ Test</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -96,7 +110,14 @@ const SelfEvaluation = () => {
 
             {/* Show explanation or loading indicator */}
             {loading[q.id] && <p className="mt-2 text-sm text-blue-600">Fetching explanation...</p>}
-            {explanations[q.id] && <p className="mt-2 text-sm text-red-600"><strong>Explanation:</strong> {explanations[q.id]}</p>}
+            {explanations[q.id] && (
+              <div className="mt-2 text-sm text-red-600">
+                <strong>Explanation:</strong>
+                {explanations[q.id].split(/\* /).map((point, index) => (
+                  point.trim() && <p key={index} className="ml-4">• {point.trim()}</p>
+                ))}
+              </div>
+            )}
           </div>
         ))}
 
