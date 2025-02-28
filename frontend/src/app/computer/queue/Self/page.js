@@ -21,7 +21,6 @@ const SelfEvaluation = () => {
     { id: 'q14', text: 'What happens when you try to dequeue from an empty queue?', options: ['Returns null', 'Throws an error', 'Removes front element', 'Nothing happens'], answer: 'Throws an error' },
     { id: 'q15', text: 'How do you implement a queue using two stacks?', options: ['Push elements normally', 'Use one for enqueue, another for dequeue', 'Both push and pop on the same stack', 'It is impossible'], answer: 'Use one for enqueue, another for dequeue' }
   ];
-  
 
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [score, setScore] = useState(null);
@@ -34,60 +33,56 @@ const SelfEvaluation = () => {
 
   const [errors, setErrors] = useState({}); // Track unanswered questions
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  let newScore = 0;
-  let newExplanations = {};
-  let newErrors = {}; // Store "Not answered" messages
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    let newScore = 0;
 
-  for (const question of questions) {
-    const selected = selectedAnswers[question.id];
+    for (const question of questions) {
+      const selected = selectedAnswers[question.id];
 
-    if (!selected) {
-      // ❌ User didn't answer -> Show "Not answered"
-      newErrors[question.id] = 'Not answered';
-      newExplanations[question.id] = 'Not answered';
-    } else if (selected === question.answer) {
-      newScore++;
-    } else {
-      setLoading(prev => ({ ...prev, [question.id]: true }));
-
-      try {
-        const response = await fetch('http://127.0.0.1:5000/explain', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            question: question.text,
-            wrongAnswer: selected,
-            correctAnswer: question.answer
-          })
-        });
-
-        const data = await response.json();
-        const formattedExplanation = `* ` + data.explanation.replace(/\n/g, '\n* ');
-
-        newExplanations[question.id] = formattedExplanation;
-      } catch (error) {
-        console.error('Error fetching explanation:', error);
-        newExplanations[question.id] = 'Error retrieving explanation.';
+      // If the question was not answered, set explanation to "Question not answered"
+      if (!selected) {
+        setExplanations(prev => ({ ...prev, [question.id]: 'Question not answered' }));
+        continue; // Skip further processing for unanswered question
       }
 
-      setLoading(prev => ({ ...prev, [question.id]: false }));
+      // If the answer is correct, increment the score and set explanation
+      if (selected === question.answer) {
+        newScore++;
+        setExplanations(prev => ({ ...prev, [question.id]: 'Correct answer: ' + question.answer }));
+      } else {
+        setLoading(prev => ({ ...prev, [question.id]: true }));  // Start loading state
+
+        try {
+          const response = await fetch('http://127.0.0.1:5000/explain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              question: question.text,
+              wrongAnswer: selected,
+              correctAnswer: question.answer
+            })
+          });
+
+          const data = await response.json();
+          setExplanations(prev => ({ ...prev, [question.id]: data.explanation || 'No explanation available.' }));
+        } catch (error) {
+          console.error('Error fetching explanation:', error);
+          setExplanations(prev => ({ ...prev, [question.id]: 'Error retrieving explanation.' }));
+        }
+
+        setLoading(prev => ({ ...prev, [question.id]: false })); // End loading state
+      }
     }
-  }
 
-  setScore(newScore);
-  setExplanations(newExplanations);
-  setErrors(newErrors); // Update "Not answered" messages
-};
-
-  
+    setScore(newScore);
+  };
 
   return (
     <div className="p-6 text-gray-900 bg-white min-h-screen">
       <TopicNavbar />
       <h2 className="text-2xl font-bold mb-4">Self-Evaluation</h2>
+      <p className="mb-4">Step-by-step procedure to implement a queue using a list in Python.</p>
       <h2 className="text-xl font-semibold mb-3">Queue Data Structure MCQ Test</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -110,13 +105,15 @@ const handleSubmit = async (e) => {
 
             {/* Show explanation or loading indicator */}
             {loading[q.id] && <p className="mt-2 text-sm text-blue-600">Fetching explanation...</p>}
+
             {explanations[q.id] && (
-              <div className="mt-2 text-sm text-red-600">
-                <strong>Explanation:</strong>
-                {explanations[q.id].split(/\* /).map((point, index) => (
-                  point.trim() && <p key={index} className="ml-4">• {point.trim()}</p>
-                ))}
-              </div>
+              <p
+                className={`mt-2 text-sm ${
+                  selectedAnswers[q.id] === q.answer ? 'text-green-600 font-semibold' : 'text-red-600'
+                }`}
+              >
+                <strong>Explanation:</strong> {explanations[q.id]}
+              </p>
             )}
           </div>
         ))}
