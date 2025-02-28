@@ -112,7 +112,7 @@ const SelfEvaluation = () => {
                   selectedAnswers[q.id] === q.answer ? 'text-green-600 font-semibold' : 'text-red-600'
                 }`}
               >
-                <strong>Explanation:</strong> {explanations[q.id]}
+                <strong></strong> {explanations[q.id]}
               </p>
             )}
           </div>
