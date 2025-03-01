@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TopicNavbar from "@/components/TopicNavbar";
 import { BarChart, XAxis, YAxis, Bar, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Mic, MicOff } from 'lucide-react'; // Import icons from lucide-react
 
 const SelfEvaluation = () => {
   const questions = [
@@ -39,6 +40,88 @@ const SelfEvaluation = () => {
   const [errors, setErrors] = useState({}); // Track unanswered questions
   const [weakTopics, setWeakTopics] = useState([]); // Track weak topics
   const [textFeedback, setTextFeedback] = useState({}); // Store feedback for text answers
+  
+  // Speech recognition states
+  const [isListening, setIsListening] = useState({});
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [recognitionInstances, setRecognitionInstances] = useState({});
+
+  // Check if speech recognition is supported
+  useEffect(() => {
+    const isBrowser = typeof window !== 'undefined';
+    const isRecognitionSupported = isBrowser && (
+      'SpeechRecognition' in window || 
+      'webkitSpeechRecognition' in window
+    );
+    
+    setSpeechSupported(isRecognitionSupported);
+  }, []);
+
+  // Handle speech recognition
+  const toggleListening = (questionId) => {
+    if (!speechSupported) {
+      alert('Speech recognition is not supported in your browser. Please try Chrome, Edge, or Safari.');
+      return;
+    }
+
+    if (isListening[questionId]) {
+      // Stop listening
+      if (recognitionInstances[questionId]) {
+        recognitionInstances[questionId].stop();
+      }
+      setIsListening(prev => ({ ...prev, [questionId]: false }));
+    } else {
+      // Start listening
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+      
+      // Create a copy of existing instances
+      const updatedInstances = { ...recognitionInstances };
+      updatedInstances[questionId] = recognition;
+      setRecognitionInstances(updatedInstances);
+      
+      // Set up event handlers
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0])
+          .map(result => result.transcript)
+          .join('');
+        
+        setTextAnswers(prev => ({ 
+          ...prev, 
+          [questionId]: transcript 
+        }));
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(prev => ({ ...prev, [questionId]: false }));
+      };
+      
+      recognition.onend = () => {
+        setIsListening(prev => ({ ...prev, [questionId]: false }));
+      };
+      
+      // Start recognition
+      recognition.start();
+      setIsListening(prev => ({ ...prev, [questionId]: true }));
+    }
+  };
+
+  // Clean up speech recognition instances on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(recognitionInstances).forEach(instance => {
+        if (instance) {
+          instance.stop();
+        }
+      });
+    };
+  }, [recognitionInstances]);
 
   const handleOptionChange = (questionId, option) => {
     setSelectedAnswers(prev => ({ ...prev, [questionId]: option }));
@@ -222,6 +305,13 @@ const SelfEvaluation = () => {
       <TopicNavbar />
       <h2 className="text-2xl font-bold mb-4">Self-Evaluation</h2>
       <p className="mb-4">Step-by-step procedure to implement a queue using a list in Python.</p>
+      
+      {!speechSupported && (
+        <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded-lg">
+          <p>Speech recognition is not supported in your browser. For the best experience, please use Chrome, Edge, or Safari.</p>
+        </div>
+      )}
+      
       <h2 className="text-xl font-semibold mb-3">Queue Data Structure MCQ Test</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         {questions.map((q, index) => (
@@ -263,6 +353,7 @@ const SelfEvaluation = () => {
             )}
           </div>
         ))}
+        
         <h2 className="text-xl font-semibold mt-8 mb-3">Short Answer Questions</h2>
         {textQuestions.map((tq, index) => (
           <div key={tq.id} className="mb-4 p-4 border rounded-lg shadow-sm bg-gray-50">
@@ -272,12 +363,32 @@ const SelfEvaluation = () => {
                 {tq.topic}
               </span>
             </div>
-            <textarea
-              className="w-full p-2 border rounded-lg"
-              rows="4"
-              value={textAnswers[tq.id] || ""}
-              onChange={(e) => handleTextChange(tq.id, e.target.value)}
-            />
+            <div className="relative">
+              <textarea
+                className="w-full p-2 border rounded-lg"
+                rows="4"
+                value={textAnswers[tq.id] || ""}
+                onChange={(e) => handleTextChange(tq.id, e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => toggleListening(tq.id)}
+                className={`absolute right-2 bottom-2 p-2 rounded-full ${
+                  isListening[tq.id] 
+                    ? 'bg-red-500 text-white' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+                disabled={!speechSupported}
+                title={isListening[tq.id] ? "Stop recording" : "Start recording"}
+              >
+                {isListening[tq.id] ? <MicOff size={18} /> : <Mic size={18} />}
+              </button>
+            </div>
+            {isListening[tq.id] && (
+              <p className="mt-2 text-sm text-red-500 animate-pulse">
+                Listening... speak now
+              </p>
+            )}
             {/* Show text answer feedback if available */}
             {loading[tq.id] && <p className="mt-2 text-sm text-blue-600">Evaluating answer...</p>}
             {textFeedback[tq.id] && (
@@ -306,17 +417,20 @@ const SelfEvaluation = () => {
             )}
           </div>
         ))}
+        
         <button 
           type="submit" 
           className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition">
           Submit
         </button>
       </form>
+      
       {score !== null && (
         <p className="mt-4 text-3xl font-semibold text-blue-500 shadow-md">
           Your Score: {score} / {questions.length + textQuestions.length * 5}
         </p>
       )}
+      
       {/* Performance Chart */}
       {score !== null && topicPerformance.length > 0 && (
         <div className="mt-8">
@@ -338,6 +452,7 @@ const SelfEvaluation = () => {
           </ResponsiveContainer>
         </div>
       )}
+      
       {/* Weak Topics Identified */}
       {weakTopics.length > 0 && (
         <div className="mt-8">
@@ -352,4 +467,5 @@ const SelfEvaluation = () => {
     </div>
   );
 };
+
 export default SelfEvaluation;
