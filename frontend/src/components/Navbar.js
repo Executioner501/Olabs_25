@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -13,13 +13,25 @@ const Navbar = () => {
   const [subject, setSubject] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    const storedUsername = localStorage.getItem("username");
+    if (storedUsername) {
+      setUsername(storedUsername);
+      setIsAuthenticated(true);
+    }
+  }, []);
+
   const toggleModal = () => setIsModalOpen(!isModalOpen);
   const toggleForm = () => setIsLogin(!isLogin);
-  
+
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUsername("");
     setPassword("");
+
+    // Remove username from localStorage
+    localStorage.removeItem("username");
+
     alert("Logged out successfully");
   };
 
@@ -35,6 +47,9 @@ const Navbar = () => {
         alert("Login Successful!");
         setIsAuthenticated(true);
         setIsModalOpen(false);
+        
+        // Store username in localStorage
+        localStorage.setItem("username", username);
       } else {
         alert(data.message);
       }
@@ -113,7 +128,7 @@ const Navbar = () => {
             </button>
             {isLogin ? (
               <>
-                <h2 className="text-2xl font-bold mb-5  text-black">Log in</h2>
+                <h2 className="text-2xl font-bold mb-5 text-black">Log in</h2>
                 <input type="text" className="w-full px-4 py-2 border rounded-md mb-2 text-black" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
                 <input type="password" className="w-full px-4 py-2 border rounded-md mb-2 text-black" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
                 <button className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600" onClick={handleLogin}>Log in</button>
@@ -130,11 +145,7 @@ const Navbar = () => {
                   <option value="teacher">Teacher</option>
                 </select>
                 {userType === "teacher" && (
-                  <select className="w-full px-4 py-2 border rounded-md mb-2 text-black" value={subject} onChange={(e) => setSubject(e.target.value)}>
-                    <option value="">Select Subject</option>
-                    <option value="physics">Computer</option>
-                    <option value="chemistry">Chemistry</option>
-                  </select>
+                  <input type="text" className="w-full px-4 py-2 border rounded-md mb-2 text-black" placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
                 )}
                 <button className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600" onClick={handleSignup}>Sign up</button>
                 <p className="text-center mt-4 text-black">Already have an account? <span className="text-blue-600 cursor-pointer" onClick={toggleForm}>Log in</span></p>

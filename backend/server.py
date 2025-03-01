@@ -13,6 +13,7 @@ app.config["MONGO_URI"] = MONGO_URI
 
 mongo = PyMongo(app)
 bcrypt = Bcrypt(app)
+reports_collection = mongo.db.reports
 
 # Root Endpoint - Health Check
 @app.route("/", methods=["GET"])
@@ -55,7 +56,39 @@ def signup():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+@app.route("/add_report", methods=["POST"])
+def add_report():
+    try:
+        data = request.json
+        username = data.get("username")  # Frontend sends the username from local storage
+        title = data.get("title")  # Question title
+        totalMarks = data.get("totalMarks")  
+        topic_wise_correct = data.get("topicMarks")  
+        
 
+        if not username or not title or totalMarks is None or not isinstance(topic_wise_correct, dict):
+            return jsonify({"message": "Missing required fields"}), 400
+
+        # Check if user exists
+        user = mongo.db.users.find_one({"username": username})
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+
+        # Create report document
+        report_data = {
+            "username": username,
+            "title": title,
+            "total_score": totalMarks,
+            "topic_wise_correct": topic_wise_correct,
+            
+        }
+
+        # Insert into database
+        reports_collection.insert_one(report_data)
+        return jsonify({"message": "Report added successfully"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 # User Login
 @app.route("/login", methods=["POST"])
 def login():

@@ -37,6 +37,7 @@ const SelfEvaluation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     let newScore = 0;
     const topicWiseCorrect = {};
 
@@ -60,7 +61,7 @@ const SelfEvaluation = () => {
         setLoading(prev => ({ ...prev, [question.id]: true }));  // Start loading state
 
         try {
-          const response = await fetch('http://127.0.0.1:5000/explain', {
+          const response = await fetch('http://127.0.0.1:5001/explain', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -82,7 +83,7 @@ const SelfEvaluation = () => {
     }
 
     setScore(newScore);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+   
 
     // ✅ Calculate Topic-Wise Performance
     const totalQuestionsPerTopic = {};
@@ -103,6 +104,23 @@ const SelfEvaluation = () => {
       .map(topic => topic.topic);
 
     setWeakTopics(weakTopicsList);
+    const user=localStorage.getItem("username");
+    const reportData = {
+      username:user,
+      title: "Write a program to implement a Queue using a list data-structure",
+      totalMarks: `${newScore} / ${questions.length}`,
+      topicMarks: Object.keys(topicWiseCorrect).reduce((acc, topic) => {
+        acc[topic] = `${topicWiseCorrect[topic]} / ${totalQuestionsPerTopic[topic]}`;
+        return acc;
+      }, {})
+    };
+    
+    // Automatically send report after evaluation
+    fetch('http://127.0.0.1:5000/add_report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reportData)
+    }).catch(error => console.error("Error sending report:", error));
   };
 
   return (
