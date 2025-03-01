@@ -105,15 +105,47 @@ const SelfEvaluation = () => {
 
     setWeakTopics(weakTopicsList);
     const user=localStorage.getItem("username");
-    const reportData = {
-      username:user,
-      title: "Write a program to implement a Queue using a list data-structure",
-      totalMarks: `${newScore} / ${questions.length}`,
-      topicMarks: Object.keys(topicWiseCorrect).reduce((acc, topic) => {
-        acc[topic] = `${topicWiseCorrect[topic]} / ${totalQuestionsPerTopic[topic]}`;
-        return acc;
-      }, {})
-    };
+    // Define your topics explicitly
+    const topics = [
+  "Queue Basics & Operations",
+  "Queue Implementation & Variants",
+  "Queue Pointers & Structure",
+  "Queue Applications & Errors"
+];
+
+// Calculate marks per topic:
+const topicMarks = {};
+
+topics.forEach(topic => {
+  // Filter questions that belong to the current topic
+  const questionsForTopic = questions.filter(q => q.topic === topic);
+  const total = questionsForTopic.length;
+  let correct = 0;
+
+  // Count correct answers for this topic
+  questionsForTopic.forEach(q => {
+    if (selectedAnswers[q.id] === q.answer) {
+      correct++;
+    }
+  });
+
+  // Store the result as a string in the format "correct / total"
+  topicMarks[topic] = `${correct} / ${total}`;
+});
+
+const reportData = {
+  username: user,
+  title: "Write a program to implement a Queue using a list data-structure",
+  totalMarks: `${newScore} / ${questions.length}`,
+  topicMarks: topicMarks
+};
+
+// Send the report data to your backend
+fetch('http://127.0.0.1:5000/add_report', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(reportData)
+})
     
     // Automatically send report after evaluation
     fetch('http://127.0.0.1:5000/add_report', {

@@ -4,9 +4,7 @@ import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [classes, setClasses] = useState([
-   
-  ]);
+  const [classes, setClasses] = useState([]);
 
   const addClass = () => {
     const className = prompt("Enter class name:");
@@ -23,8 +21,8 @@ export default function DashboardPage() {
     setClasses(classes.filter((classItem) => classItem.id !== classId));
   };
 
-  const navigateToStudents = (classId) => {
-    router.push(`/students/${classId}`);
+  const navigateToStudents = (classItem) => {
+    router.push(`/dashboard/students?classId=${classItem.id}&className=${encodeURIComponent(classItem.title)}`);
   };
 
   return (
@@ -37,7 +35,7 @@ export default function DashboardPage() {
           <ClassCard 
             key={classItem.id} 
             title={classItem.title} 
-            onClick={() => navigateToStudents(classItem.id)}
+            onNavigate={() => navigateToStudents(classItem)}
             onDelete={() => deleteClass(classItem.id)}
           />
         ))}
@@ -47,9 +45,12 @@ export default function DashboardPage() {
   );
 }
 
-function ClassCard({ title, onClick, onDelete }) {
+function ClassCard({ title, onNavigate, onDelete }) {
   return (
-    <div className="relative w-full bg-[#FACC15] shadow-lg rounded-lg overflow-hidden cursor-pointer">
+    <div 
+      className="relative w-full bg-[#FACC15] shadow-lg rounded-lg overflow-hidden cursor-pointer"
+      onClick={onNavigate}
+    >
       <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
         <h3 className="text-white text-xl font-semibold">{title}</h3>
       </div>

@@ -24,14 +24,14 @@ export default function Home() {
       {/* Subject Cards */}
       <div className="container mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
         {subjects.map((subject, index) => (
-          <Link key={index} href="/computer">
-            <div className="cursor-pointer bg-white shadow-lg rounded-xl overflow-hidden transform transition duration-300 hover:scale-105">
+          <Link key={index} href={subject.link}> {/* Don't forget to fix the href here */}
+            <div className="cursor-pointer bg-white shadow-lg rounded-xl overflow-hidden transform transition duration-300 hover:scale-105 border border-black">
               <img src={subject.img} className="w-full h-24 object-contain bg-gray-100 rounded-t-xl" alt={subject.name} />
               <div className={`p-3 text-center text-white font-bold rounded-b-xl ${subject.color}`}>
                 {subject.name}
               </div>
             </div>
-          </Link>
+          </Link> 
         ))}
       </div>
     </div>
