@@ -70,7 +70,6 @@ const SelfEvaluation = () => {
               correctAnswer: question.answer
             })
           });
-
           const data = await response.json();
           setExplanations(prev => ({ ...prev, [question.id]: data.explanation || 'No explanation available.' }));
         } catch (error) {
@@ -81,11 +80,7 @@ const SelfEvaluation = () => {
         setLoading(prev => ({ ...prev, [question.id]: false })); // End loading state
       }
     }
-
     setScore(newScore);
-   
-
-    // ✅ Calculate Topic-Wise Performance
     const totalQuestionsPerTopic = {};
     questions.forEach((q) => {
       totalQuestionsPerTopic[q.topic] = (totalQuestionsPerTopic[q.topic] || 0) + 1;
@@ -95,58 +90,18 @@ const SelfEvaluation = () => {
       topic,
       percentage: ((topicWiseCorrect[topic] || 0) / totalQuestionsPerTopic[topic]) * 100
     }));
-
     setTopicPerformance(finalPerformance);
-
-    // ✅ Identify Weak Topics
     const weakTopicsList = finalPerformance
       .filter(topic => topic.percentage < 50)
       .map(topic => topic.topic);
-
     setWeakTopics(weakTopicsList);
     const user=localStorage.getItem("username");
-    // Define your topics explicitly
-    const topics = [
-  "Queue Basics & Operations",
-  "Queue Implementation & Variants",
-  "Queue Pointers & Structure",
-  "Queue Applications & Errors"
-];
-
-// Calculate marks per topic:
-const topicMarks = {};
-
-topics.forEach(topic => {
-  // Filter questions that belong to the current topic
-  const questionsForTopic = questions.filter(q => q.topic === topic);
-  const total = questionsForTopic.length;
-  let correct = 0;
-
-  // Count correct answers for this topic
-  questionsForTopic.forEach(q => {
-    if (selectedAnswers[q.id] === q.answer) {
-      correct++;
-    }
-  });
-
-  // Store the result as a string in the format "correct / total"
-  topicMarks[topic] = `${correct} / ${total}`;
-});
-
 const reportData = {
   username: user,
   title: "Write a program to implement a Queue using a list data-structure",
   totalMarks: `${newScore} / ${questions.length}`,
-  topicMarks: topicMarks
+  weakAreas:  weakTopicsList.join(', ')
 };
-
-// Send the report data to your backend
-fetch('http://127.0.0.1:5000/add_report', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(reportData)
-})
-    
     // Automatically send report after evaluation
     fetch('http://127.0.0.1:5000/add_report', {
       method: 'POST',

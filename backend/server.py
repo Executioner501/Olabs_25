@@ -63,10 +63,10 @@ def add_report():
         username = data.get("username")  # Frontend sends the username from local storage
         title = data.get("title")  # Question title
         totalMarks = data.get("totalMarks")  
-        topic_wise_correct = data.get("topicMarks")  
+        weakAreas = data.get("weakAreas")  
         
 
-        if not username or not title or totalMarks is None or not isinstance(topic_wise_correct, dict):
+        if not username or not title or totalMarks is None or weakAreas is None:
             return jsonify({"message": "Missing required fields"}), 400
 
         # Check if user exists
@@ -79,7 +79,7 @@ def add_report():
             "username": username,
             "title": title,
             "total_score": totalMarks,
-            "topic_wise_correct": topic_wise_correct,
+            "weakAreas": weakAreas,
             
         }
 
