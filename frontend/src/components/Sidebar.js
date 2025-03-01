@@ -9,7 +9,7 @@ const Sidebar = () => {
 
   return (
     <aside className="w-64 bg-white shadow-md p-6 h-screen">
-      <h1 className="text-xl font-bold mb-6">Teacher Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6 text-gray-600">Teacher Dashboard</h1>
       <nav className="space-y-4">
         <p className="text-gray-500 text-sm">Discover</p>
         <NavItem href="/dashboard" icon={<Home size={20} />} text="Home" active={pathname === "/dashboard"} />
