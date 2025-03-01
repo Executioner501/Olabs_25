@@ -12,8 +12,7 @@ const Sidebar = () => {
       <h1 className="text-xl font-bold mb-6">Teacher Dashboard</h1>
       <nav className="space-y-4">
         <p className="text-gray-500 text-sm">Discover</p>
-        <NavItem href="/dashboard" icon={<Home size={20} />} text="Home" active={pathname === "/dashboard"} />
-        <NavItem href="/dashboard/students" icon={<Users size={20} />} text="Students data" active={pathname === "/dashboard/students"} />
+        <NavItem href="/dashboard/tests" icon={<List size={20} />} text="Test History" active={pathname === "/dashboard/tests"} />
       </nav>
     </aside>
   );

@@ -98,10 +98,37 @@ def login():
         user = mongo.db.users.find_one({"username": username})
 
         if user and bcrypt.check_password_hash(user["password"], password):
-            return jsonify({"message": "Login successful"}), 200
+            # Return user type with successful login response
+            return jsonify({
+                "message": "Login successful",
+                "user_type": user.get("user_type", "student"),
+                "username": username,
+                "fullname": user.get("fullname", username)
+            }), 200
         else:
             return jsonify({"message": "Invalid username or password"}), 401
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Get User by Username
+@app.route("/user/<username>", methods=["GET"])
+def get_user(username):
+    try:
+        user = users_collection.find_one({"username": username})
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+            
+        # Remove password field for security
+        if "password" in user:
+            del user["password"]
+            
+        # Convert ObjectId to string for JSON serialization
+        if "_id" in user:
+            user["_id"] = str(user["_id"])
+            
+        return jsonify(user), 200
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -144,9 +171,15 @@ def get_student():
         elif isinstance(weak_areas, list):
             all_weak_areas.extend(weak_areas)
 
+    # Convert ObjectId to string for each report
+    for report in student_reports:
+        if "_id" in report:
+            report["_id"] = str(report["_id"])
+
     response = {
         "username": username,
         "fullname": user.get("fullname", username),
+        "user_type": user.get("user_type", "student"),
         "total_obtained": total_obtained,
         "total_max": total_max,
         "total_score": f"{total_obtained} / {total_max}",
@@ -160,7 +193,7 @@ def add_user():
     user_data = {
         "username": "john_doe",
         "fullname": "John Doe",
-        "role": "student",
+        "user_type": "student",  # Changed from "role" to "user_type" for consistency
         "password": "hashed_password_here"
     }
     users_collection.insert_one(user_data)

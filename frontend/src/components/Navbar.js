@@ -12,12 +12,18 @@ const Navbar = () => {
   const [userType, setUserType] = useState("student");
   const [subject, setSubject] = useState("");
   const [password, setPassword] = useState("");
+  const [currentUserType, setCurrentUserType] = useState("");
 
   useEffect(() => {
+    // Check localStorage for stored user information on component mount
     const storedUsername = localStorage.getItem("username");
+    const storedUserType = localStorage.getItem("userType");
+    
     if (storedUsername) {
       setUsername(storedUsername);
+      setCurrentUserType(storedUserType || "student");
       setIsAuthenticated(true);
+      console.log("Retrieved from localStorage:", { username: storedUsername, userType: storedUserType });
     }
   }, []);
 
@@ -28,9 +34,11 @@ const Navbar = () => {
     setIsAuthenticated(false);
     setUsername("");
     setPassword("");
+    setCurrentUserType("");
 
-    // Remove username from localStorage
+    // Remove user data from localStorage
     localStorage.removeItem("username");
+    localStorage.removeItem("userType");
 
     alert("Logged out successfully");
   };
@@ -42,16 +50,26 @@ const Navbar = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
+      
       const data = await response.json();
+      console.log("Login response:", data);
+      
       if (response.ok) {
+        // Get user type from response - backend now includes this!
+        const userTypeFromResponse = data.user_type || "student";
+        
         alert("Login Successful!");
         setIsAuthenticated(true);
+        setCurrentUserType(userTypeFromResponse);
         setIsModalOpen(false);
         
-        // Store username in localStorage
+        // Store username and user type in localStorage
         localStorage.setItem("username", username);
+        localStorage.setItem("userType", userTypeFromResponse);
+        
+        console.log("Stored in localStorage:", { username, userType: userTypeFromResponse });
       } else {
-        alert(data.message);
+        alert(data.message || "Login failed");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -64,14 +82,21 @@ const Navbar = () => {
       const response = await fetch("http://127.0.0.1:5000/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, fullname, user_type: userType, subject: userType === "teacher" ? subject : "", password }),
+        body: JSON.stringify({ 
+          username, 
+          fullname, 
+          user_type: userType, 
+          subject: userType === "teacher" ? subject : "", 
+          password 
+        }),
       });
+      
       const data = await response.json();
       if (response.ok) {
         alert("Signup Successful! Please log in.");
         setIsLogin(true);
       } else {
-        alert(data.message);
+        alert(data.message || "Signup failed");
       }
     } catch (error) {
       console.error("Signup error:", error);
@@ -103,16 +128,27 @@ const Navbar = () => {
           <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">Workshops &#9662;</li>
           <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">Training &#9662;</li>
           <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">Contact Us</li>
-          {isAuthenticated && (
+          
+          {isAuthenticated && currentUserType === "teacher" && (
             <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">
-              <Link href="/dashboard">DashBoard</Link>
+              <Link href="/dashboard">Dashboard</Link>
+            </li>
+          )}
+          
+          {isAuthenticated && currentUserType === "student" && (
+            <li className="cursor-pointer px-3 py-2 rounded-md hover:bg-blue-100">
+              <Link href="/history">History</Link>
             </li>
           )}
         </ul>
+        
         {isAuthenticated ? (
-          <button className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={handleLogout}>
-            Logout
-          </button>
+          <div className="flex items-center">
+            <span className="mr-4 text-gray-700">{username} ({currentUserType})</span>
+            <button className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
         ) : (
           <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={toggleModal}>
             Login / Signup
